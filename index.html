@@ -258,7 +258,7 @@
                 <li>Presiona "Activar Cámara"</li>
                 <li>Apunta a la etiqueta completa</li>
                 <li>Presiona "Capturar y Procesar con OCR"</li>
-                <li>El sistema leerá automáticamente el número después de "Pedido:"</li>
+                <li>El sistema leerá automáticamente el número después de "E"</li>
                 <li>Verifica que el número sea correcto antes de guardar</li>
             </ul>
         </div>
@@ -415,8 +415,8 @@
                 ocrResult.textContent = text;
                 ocrResult.style.display = 'block';
                 
-                // Buscar número después de "Pedido:"
-                const pedidoMatch = text.match(/Pedido:\s*(\d+)/i);
+                // Buscar número después de "E"
+                const pedidoMatch = text.match(/E\s*(\d+)/i);
                 
                 if (pedidoMatch && pedidoMatch[1]) {
                     const numeroPedido = pedidoMatch[1];
@@ -424,7 +424,7 @@
                     document.getElementById('pedidoNumero').value = numeroPedido;
                     showStatus(`✅ Número de pedido extraído: ${numeroPedido}`, 'success');
                 } else {
-                    showStatus('⚠️ No se encontró "Pedido:" en la imagen. Ingresa el número manualmente.', 'error');
+                    showStatus('⚠️ No se encontró "E" en la imagen. Ingresa el número manualmente.', 'error');
                     document.getElementById('ticket').readOnly = false;
                     document.getElementById('ticket').focus();
                 }
