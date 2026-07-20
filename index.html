@@ -415,8 +415,8 @@
                 ocrResult.textContent = text;
                 ocrResult.style.display = 'block';
                 
-                // Buscar número después de "Pedido:"
-                const pedidoMatch = text.match(/Pedido:\s*(\d+)/i);
+                // Buscar número después de "E"
+                const pedidoMatch = text.match(/E\s*(\d+)/i);
                 
                 if (pedidoMatch && pedidoMatch[1]) {
                     const numeroPedido = pedidoMatch[1];
