@@ -1,518 +1,559 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rastreo OCR - Punto A</title>
-    <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 10px;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        h1 { 
-            color: #333; 
-            margin-bottom: 10px; 
-            text-align: center;
-            font-size: 1.3em;
-        }
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 20px;
-            font-size: 0.85em;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        input[type="text"],
-        input[type="number"] {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-        }
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .camera-section {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        #cameraPreview {
-            width: 100%;
-            max-height: 300px;
-            border-radius: 8px;
-            display: none;
-            margin-bottom: 10px;
-        }
-        #cameraVideo {
-            width: 100%;
-            max-height: 300px;
-            border-radius: 8px;
-            display: none;
-        }
-        .btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .btn-camera {
-            background: #4CAF50;
-        }
-        .btn-capture {
-            background: #FF9800;
-            display: none;
-        }
-        .timestamp {
-            background: #fff3e0;
-            padding: 10px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 14px;
-            color: #e65100;
-            margin-bottom: 10px;
-        }
-        .status-msg {
-            padding: 12px;
-            border-radius: 6px;
-            margin: 10px 0;
-            display: none;
-            font-size: 14px;
-        }
-        .status-msg.error {
-            background: #ffebee;
-            color: #c62828;
-        }
-        .status-msg.success {
-            background: #c8e6c9;
-            color: #2e7d32;
-        }
-        .status-msg.info {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-        .ocr-progress {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 10px 0;
-            display: none;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            background: #ddd;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            width: 0%;
-            transition: width 0.3s;
-        }
-        .ocr-result {
-            background: #f0f0f0;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 10px;
-            font-family: monospace;
-            font-size: 12px;
-            max-height: 150px;
-            overflow-y: auto;
-            display: none;
-        }
-        .info-box {
-            background: #e3f2fd;
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 15px;
-            font-size: 13px;
-        }
-        .info-box ul {
-            margin-left: 20px;
-            margin-top: 5px;
-        }
-        @media (max-width: 480px) {
-            .container { padding: 15px; }
-            h1 { font-size: 1.2em; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rastreo OCR - Punto A</title>
+<script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+padding: 10px;
+min-height: 100vh;
+}
+.container {
+max-width: 600px;
+margin: 0 auto;
+background: white;
+padding: 20px;
+border-radius: 10px;
+box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+h1 {
+color: #333;
+margin-bottom: 10px;
+text-align: center;
+font-size: 1.3em;
+}
+.subtitle {
+text-align: center;
+color: #666;
+margin-bottom: 20px;
+font-size: 0.85em;
+}
+.form-group {
+margin-bottom: 15px;
+}
+label {
+display: block;
+margin-bottom: 5px;
+color: #555;
+font-weight: 600;
+font-size: 14px;
+}
+input[type="text"],
+input[type="number"] {
+width: 100%;
+padding: 12px;
+border: 2px solid #ddd;
+border-radius: 6px;
+font-size: 16px;
+}
+input:focus {
+outline: none;
+border-color: #667eea;
+}
+.camera-section {
+background: #f8f9fa;
+padding: 15px;
+border-radius: 8px;
+margin-bottom: 15px;
+}
+#cameraPreview {
+width: 100%;
+max-height: 300px;
+border-radius: 8px;
+display: none;
+margin-bottom: 10px;
+}
+#cameraVideo {
+width: 100%;
+max-height: 300px;
+border-radius: 8px;
+display: none;
+}
+.btn {
+width: 100%;
+padding: 15px;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+border: none;
+border-radius: 6px;
+font-size: 16px;
+font-weight: 600;
+cursor: pointer;
+margin-top: 10px;
+}
+.btn:disabled {
+background: #ccc;
+cursor: not-allowed;
+}
+.btn-camera {
+background: #4CAF50;
+}
+.btn-capture {
+background: #FF9800;
+display: none;
+}
+.timestamp {
+background: #fff3e0;
+padding: 10px;
+border-radius: 6px;
+font-family: monospace;
+font-size: 14px;
+color: #e65100;
+margin-bottom: 10px;
+}
+.status-msg {
+padding: 12px;
+border-radius: 6px;
+margin: 10px 0;
+display: none;
+font-size: 14px;
+}
+.status-msg.error {
+background: #ffebee;
+color: #c62828;
+}
+.status-msg.success {
+background: #c8e6c9;
+color: #2e7d32;
+}
+.status-msg.info {
+background: #e3f2fd;
+color: #1565c0;
+}
+.ocr-progress {
+background: #f5f5f5;
+padding: 15px;
+border-radius: 6px;
+margin: 10px 0;
+display: none;
+}
+.progress-bar {
+width: 100%;
+height: 20px;
+background: #ddd;
+border-radius: 10px;
+overflow: hidden;
+margin-top: 10px;
+}
+.progress-fill {
+height: 100%;
+background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+width: 0%;
+transition: width 0.3s;
+}
+.ocr-result {
+background: #f0f0f0;
+padding: 10px;
+border-radius: 6px;
+margin-top: 10px;
+font-family: monospace;
+font-size: 12px;
+max-height: 150px;
+overflow-y: auto;
+display: none;
+white-space: pre-wrap;
+}
+.info-box {
+background: #e3f2fd;
+padding: 12px;
+border-radius: 6px;
+margin-top: 15px;
+font-size: 13px;
+}
+.info-box ul {
+margin-left: 20px;
+margin-top: 5px;
+}
+@media (max-width: 480px) {
+.container { padding: 15px; }
+h1 { font-size: 1.2em; }
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>📦 Rastreo OCR - Punto A</h1>
-        <p class="subtitle">Lectura automática de etiquetas con OCR</p>
-        
-        <div id="statusMsg" class="status-msg"></div>
-        
-        <form id="trackingForm">
-            <!-- Campo 1: Determinante -->
-            <div class="form-group">
-                <label for="determinante">Determinante (4 dígitos)*</label>
-                <input type="text" 
-                       id="determinante" 
-                       name="determinante" 
-                       pattern="\d{4}" 
-                       maxlength="4" 
-                       required 
-                       placeholder="Ej: 1234"
-                       inputmode="numeric">
-            </div>
+<div class="container">
+<h1>📦 Rastreo OCR - Punto A</h1>
+<p class="subtitle">Lectura automática de etiquetas con OCR</p>
 
-            <!-- Campo 2: Ticket (extraído por OCR) -->
-            <div class="form-group">
-                <label for="ticket">Número de Pedido/Ticket*</label>
-                <input type="text" 
-                       id="ticket" 
-                       name="ticket" 
-                       required 
-                       placeholder="Se extraerá automáticamente con OCR"
-                       readonly>
-            </div>
+<div id="statusMsg" class="status-msg"></div>
 
-            <!-- Campo 3: Timestamp -->
-            <div class="form-group">
-                <label>Fecha y Hora de Captura*</label>
-                <div class="timestamp" id="timestamp">
-                    Cargando...
-                </div>
-                <input type="hidden" id="timestampInput" name="timestamp">
-            </div>
+<form id="trackingForm">
+<!-- Campo 1: Determinante -->
+<div class="form-group">
+<label for="determinante">Determinante (4 dígitos)*</label>
+<input type="text"
+id="determinante"
+name="determinante"
+pattern="\d{4}"
+maxlength="4"
+required
+placeholder="Ej: 1234"
+inputmode="numeric">
+</div>
 
-            <!-- Campo 4: Cámara y OCR -->
-            <div class="camera-section">
-                <label>📷 Capturar Etiqueta*</label>
-                
-                <video id="cameraVideo" autoplay playsinline></video>
-                <canvas id="canvas" style="display:none;"></canvas>
-                <img id="cameraPreview" alt="Vista previa">
-                
-                <button type="button" id="btnStartCamera" class="btn btn-camera">
-                    📷 Activar Cámara
-                </button>
-                
-                <button type="button" id="btnCapture" class="btn btn-capture">
-                    📸 Capturar y Procesar con OCR
-                </button>
-                
-                <div class="ocr-progress" id="ocrProgress">
-                    <div>Procesando imagen con OCR...</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                    <div id="ocrStatus" style="margin-top: 10px; font-size: 12px; color: #666;">
-                        Inicializando...
-                    </div>
-                </div>
-                
-                <div class="ocr-result" id="ocrResult"></div>
-                
-                <input type="hidden" id="fotoBase64" name="fotoBase64">
-                <input type="hidden" id="pedidoNumero" name="pedidoNumero">
-            </div>
+<!-- Campo 2: Ticket (extraído por OCR - E + 4 dígitos) -->
+<div class="form-group">
+<label for="ticket">Código (E + 4 dígitos)*</label>
+<input type="text"
+id="ticket"
+name="ticket"
+required
+placeholder="Se extraerá automáticamente (Ej: E1234)"
+readonly>
+</div>
 
-            <button type="submit" class="btn" id="btnSubmit">
-                💾 Guardar Registro
-            </button>
-        </form>
+<!-- Campo 3: Timestamp -->
+<div class="form-group">
+<label>Fecha y Hora de Captura*</label>
+<div class="timestamp" id="timestamp">
+Cargando...
+</div>
+<input type="hidden" id="timestampInput" name="timestamp">
+</div>
 
-        <div class="info-box">
-            <strong>💡 Instrucciones:</strong>
-            <ul>
-                <li>Presiona "Activar Cámara"</li>
-                <li>Apunta a la etiqueta completa</li>
-                <li>Presiona "Capturar y Procesar con OCR"</li>
-                <li>El sistema leerá automáticamente el número después de "E"</li>
-                <li>Verifica que el número sea correcto antes de guardar</li>
-            </ul>
-        </div>
-    </div>
+<!-- Campo 4: Cámara y OCR -->
+<div class="camera-section">
+<label>📷 Capturar Etiqueta*</label>
 
-    <script>
-        // ============================================
-        // ️ REEMPLAZA ESTA URL CON LA TUYA
-        // ============================================
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyh6WUwcz_iPsuG1cN5W1GUJYnddnRcycC_JjT9WcMIHFgjMlSjhYGwtbEaDAbCuc8/exec';
-        // ============================================
-        
-        let videoStream;
-        let timestampInterval;
-        let capturedImageBase64 = '';
+<video id="cameraVideo" autoplay playsinline></video>
+<canvas id="canvas" style="display:none;"></canvas>
+<img id="cameraPreview" alt="Vista previa">
 
-        // Mostrar mensajes
-        function showStatus(message, type = 'info') {
-            const statusDiv = document.getElementById('statusMsg');
-            statusDiv.textContent = message;
-            statusDiv.className = 'status-msg ' + type;
-            statusDiv.style.display = 'block';
-            
-            if (type === 'success') {
-                setTimeout(() => {
-                    statusDiv.style.display = 'none';
-                }, 3000);
-            }
-        }
+<button type="button" id="btnStartCamera" class="btn btn-camera">
+📷 Activar Cámara
+</button>
 
-        // Actualizar timestamp
-        function updateTimestamp() {
-            const now = new Date();
-            const timestampStr = now.toLocaleString('es-MX', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            });
-            document.getElementById('timestamp').textContent = timestampStr;
-            document.getElementById('timestampInput').value = now.toISOString();
-        }
+<button type="button" id="btnCapture" class="btn btn-capture">
+📸 Capturar y Procesar con OCR
+</button>
 
-        timestampInterval = setInterval(updateTimestamp, 1000);
-        updateTimestamp();
+<div class="ocr-progress" id="ocrProgress">
+<div>Procesando imagen con OCR...</div>
+<div class="progress-bar">
+<div class="progress-fill" id="progressFill"></div>
+</div>
+<div id="ocrStatus" style="margin-top: 10px; font-size: 12px; color: #666;">
+Inicializando...
+</div>
+</div>
 
-        // Activar cámara
-        document.getElementById('btnStartCamera').addEventListener('click', async () => {
-            const btn = document.getElementById('btnStartCamera');
-            const video = document.getElementById('cameraVideo');
-            const preview = document.getElementById('cameraPreview');
-            const btnCapture = document.getElementById('btnCapture');
-            
-            try {
-                videoStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    } 
-                });
-                
-                video.srcObject = videoStream;
-                video.style.display = 'block';
-                preview.style.display = 'none';
-                
-                btn.textContent = '✅ Cámara Activa';
-                btn.disabled = true;
-                btn.style.background = '#4CAF50';
-                
-                btnCapture.style.display = 'block';
-                
-                showStatus('Cámara activa. Apunta a la etiqueta y presiona "Capturar"', 'success');
-                
-            } catch (err) {
-                console.error('Error:', err);
-                
-                if (err.name === 'NotAllowedError') {
-                    showStatus('❌ Permiso de cámara denegado', 'error');
-                } else if (err.name === 'NotFoundError') {
-                    showStatus('❌ No se encontró cámara', 'error');
-                } else {
-                    showStatus('❌ Error: ' + err.message, 'error');
-                }
-            }
-        });
+<div class="ocr-result" id="ocrResult"></div>
 
-        // Capturar foto y procesar con OCR
-        document.getElementById('btnCapture').addEventListener('click', async () => {
-            const video = document.getElementById('cameraVideo');
-            const canvas = document.getElementById('canvas');
-            const preview = document.getElementById('cameraPreview');
-            const btnCapture = document.getElementById('btnCapture');
-            const ocrProgress = document.getElementById('ocrProgress');
-            const progressFill = document.getElementById('progressFill');
-            const ocrStatus = document.getElementById('ocrStatus');
-            const ocrResult = document.getElementById('ocrResult');
-            
-            if (!videoStream) {
-                showStatus('❌ Primero activa la cámara', 'error');
-                return;
-            }
-            
-            // Capturar frame del video
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
-            
-            // Convertir a base64
-            capturedImageBase64 = canvas.toDataURL('image/jpeg', 0.9);
-            document.getElementById('fotoBase64').value = capturedImageBase64;
-            
-            // Mostrar preview
-            preview.src = capturedImageBase64;
-            preview.style.display = 'block';
-            video.style.display = 'none';
-            
-            // Detener cámara
-            videoStream.getTracks().forEach(track => track.stop());
-            videoStream = null;
-            
-            btnCapture.style.display = 'none';
-            document.getElementById('btnStartCamera').style.display = 'none';
-            
-            // Procesar con OCR
-            ocrProgress.style.display = 'block';
-            ocrResult.style.display = 'none';
-            
-            try {
-                const result = await Tesseract.recognize(
-                    capturedImageBase64,
-                    'spa+eng',
-                    {
-                        logger: m => {
-                            if (m.status === 'recognizing text') {
-                                const progress = Math.round(m.progress * 100);
-                                progressFill.style.width = progress + '%';
-                                ocrStatus.textContent = `Reconociendo texto: ${progress}%`;
-                            } else {
-                                ocrStatus.textContent = m.status;
-                            }
-                        }
-                    }
-                );
-                
-                const text = result.data.text;
-                console.log('Texto OCR:', text);
-                
-                // Mostrar texto completo
-                ocrResult.textContent = text;
-                ocrResult.style.display = 'block';
-                
-                // Buscar el patrón "E" + 4 dígitos
-                const patternMatch = text.match(/E(\d{4})/i);
-                if (patternMatch && patternMatch[1]) {
-                    const codigo = patternMatch[1];
-                    document.getElementById('ticket').value = 'E' + codigo;
-                    document.getElementById('pedidoNumero').value = 'E' + codigo;
-                    showStatus(✅ Código identificado: E${codigo}, 'success');
-                } else {
-                // Si no encuentra el patrón, intenta buscar "E" + 5 dígitos (por si acaso)
-                const patternMatch5 = text.match(/E(\d{5})/i);
-                if (patternMatch5 && patternMatch5[1]) {
-                    const codigo = patternMatch5[1];
-                    document.getElementById('ticket').value = 'E' + codigo;
-                    document.getElementById('pedidoNumero').value = 'E' + codigo;
-                    showStatus(✅ Código identificado: E${codigo} (5 dígitos), 'success');
-                } else {
-                    showStatus('⚠️ No se encontró el patrón "E" + 4/5 dígitos. Ingresa el número manualmente.', 'error');
-                    document.getElementById('ticket').readOnly = false;
-                    document.getElementById('ticket').focus();
-                }
-            };
+<input type="hidden" id="fotoBase64" name="fotoBase64">
+<input type="hidden" id="pedidoNumero" name="pedidoNumero">
+</div>
 
-        // Submit del formulario
-        document.getElementById('trackingForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = {
-                determinante: document.getElementById('determinante').value,
-                ticket: document.getElementById('ticket').value,
-                timestamp: document.getElementById('timestampInput').value,
-                pedidoNumero: document.getElementById('pedidoNumero').value,
-                fotoBase64: document.getElementById('fotoBase64').value
-            };
+<button type="submit" class="btn" id="btnSubmit">
+💾 Guardar Registro
+</button>
+</form>
 
-            if (!formData.determinante || !formData.ticket) {
-                showStatus('❌ Completa los campos obligatorios', 'error');
-                return;
-            }
+<div class="info-box">
+<strong>💡 Instrucciones:</strong>
+<ul>
+<li>Presiona "Activar Cámara"</li>
+<li>Apunta a la etiqueta completa</li>
+<li>Presiona "Capturar y Procesar con OCR"</li>
+<li>El sistema buscará automáticamente el patrón "E" + 4 dígitos</li>
+<li>Verifica que el código sea correcto antes de guardar</li>
+</ul>
+</div>
+</div>
 
-            if (formData.determinante.length !== 4) {
-                showStatus(' El determinante debe tener 4 dígitos', 'error');
-                return;
-            }
+<script>
+// ============================================
+// ⚠️ REEMPLAZA ESTA URL CON LA TUYA
+// ============================================
+const SCRIPT_URL = 'TU_URL_DE_GOOGLE_APPS_SCRIPT';
+// ============================================
 
-            if (SCRIPT_URL === 'TU_URL_DE_GOOGLE_APPS_SCRIPT') {
-                showStatus('❌ No se ha configurado la URL de Google Apps Script', 'error');
-                return;
-            }
+let videoStream;
+let timestampInterval;
+let capturedImageBase64 = '';
 
-            const btn = document.getElementById('btnSubmit');
-            const originalText = btn.textContent;
-            btn.textContent = '⏳ Guardando...';
-            btn.disabled = true;
+// Mostrar mensajes
+function showStatus(message, type = 'info') {
+const statusDiv = document.getElementById('statusMsg');
+statusDiv.textContent = message;
+statusDiv.className = 'status-msg ' + type;
+statusDiv.style.display = 'block';
 
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-                
-                showStatus('✅ Registro guardado exitosamente', 'success');
-                
-                // Limpiar formulario
-                const detValue = document.getElementById('determinante').value;
-                document.getElementById('trackingForm').reset();
-                document.getElementById('determinante').value = detValue;
-                document.getElementById('ticket').readOnly = true;
-                document.getElementById('fotoBase64').value = '';
-                document.getElementById('pedidoNumero').value = '';
-                document.getElementById('cameraPreview').style.display = 'none';
-                document.getElementById('btnStartCamera').style.display = 'block';
-                document.getElementById('btnStartCamera').textContent = '📷 Activar Cámara';
-                document.getElementById('btnStartCamera').disabled = false;
-                document.getElementById('btnStartCamera').style.background = '#4CAF50';
-                
-                updateTimestamp();
-                
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                }, 2000);
-                
-            } catch (error) {
-                showStatus('❌ Error al guardar: ' + error.message, 'error');
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
-        });
+if (type === 'success') {
+setTimeout(() => {
+statusDiv.style.display = 'none';
+}, 3000);
+}
+}
 
-        // Limpieza
-        window.addEventListener('beforeunload', () => {
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-            }
-            clearInterval(timestampInterval);
-        });
-    </script>
+// Actualizar timestamp
+function updateTimestamp() {
+const now = new Date();
+const timestampStr = now.toLocaleString('es-MX', {
+year: 'numeric',
+month: '2-digit',
+day: '2-digit',
+hour: '2-digit',
+minute: '2-digit',
+second: '2-digit',
+hour12: false
+});
+document.getElementById('timestamp').textContent = timestampStr;
+document.getElementById('timestampInput').value = now.toISOString();
+}
+
+timestampInterval = setInterval(updateTimestamp, 1000);
+updateTimestamp();
+
+// Activar cámara
+document.getElementById('btnStartCamera').addEventListener('click', async () => {
+const btn = document.getElementById('btnStartCamera');
+const video = document.getElementById('cameraVideo');
+const preview = document.getElementById('cameraPreview');
+const btnCapture = document.getElementById('btnCapture');
+
+try {
+videoStream = await navigator.mediaDevices.getUserMedia({
+video: {
+facingMode: 'environment',
+width: { ideal: 1280 },
+height: { ideal: 720 }
+}
+});
+
+video.srcObject = videoStream;
+video.style.display = 'block';
+preview.style.display = 'none';
+
+btn.textContent = '✅ Cámara Activa';
+btn.disabled = true;
+btn.style.background = '#4CAF50';
+
+btnCapture.style.display = 'block';
+
+showStatus('Cámara activa. Apunta a la etiqueta y presiona "Capturar"', 'success');
+
+} catch (err) {
+console.error('Error:', err);
+
+if (err.name === 'NotAllowedError') {
+showStatus('❌ Permiso de cámara denegado', 'error');
+} else if (err.name === 'NotFoundError') {
+showStatus(' No se encontró cámara', 'error');
+} else {
+showStatus('❌ Error: ' + err.message, 'error');
+}
+}
+});
+
+// Capturar foto del video con compresión
+function capturePhoto() {
+const video = document.getElementById('cameraVideo');
+const canvas = document.getElementById('canvas');
+
+if (!video || !video.videoWidth) {
+showStatus('❌ No hay video disponible para capturar', 'error');
+return false;
+}
+
+// Redimensionar para reducir tamaño (máximo 800px de ancho)
+const maxWidth = 800;
+const scale = Math.min(1, maxWidth / video.videoWidth);
+
+canvas.width = video.videoWidth * scale;
+canvas.height = video.videoHeight * scale;
+
+const ctx = canvas.getContext('2d');
+ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+// Convertir a base64 con compresión (calidad 0.7)
+capturedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+document.getElementById('fotoBase64').value = capturedImageBase64;
+
+// Mostrar preview
+const preview = document.getElementById('cameraPreview');
+preview.src = capturedImageBase64;
+preview.style.display = 'block';
+video.style.display = 'none';
+
+const sizeKB = Math.round(capturedImageBase64.length / 1024);
+showStatus(`📸 Imagen capturada (${sizeKB} KB)`, 'info');
+
+return true;
+}
+
+// Capturar foto y procesar con OCR
+document.getElementById('btnCapture').addEventListener('click', async () => {
+const video = document.getElementById('cameraVideo');
+const btnCapture = document.getElementById('btnCapture');
+const ocrProgress = document.getElementById('ocrProgress');
+const progressFill = document.getElementById('progressFill');
+const ocrStatus = document.getElementById('ocrStatus');
+const ocrResult = document.getElementById('ocrResult');
+
+if (!videoStream) {
+showStatus('❌ Primero activa la cámara', 'error');
+return;
+}
+
+// Capturar foto (con compresión)
+const captured = capturePhoto();
+if (!captured) return;
+
+// Detener cámara
+if (videoStream) {
+videoStream.getTracks().forEach(track => track.stop());
+videoStream = null;
+}
+
+btnCapture.style.display = 'none';
+document.getElementById('btnStartCamera').style.display = 'none';
+
+// Procesar con OCR
+ocrProgress.style.display = 'block';
+ocrResult.style.display = 'none';
+
+try {
+const result = await Tesseract.recognize(
+capturedImageBase64,
+spa+eng',
+{
+logger: m => {
+if (m.status === 'recognizing text') {
+const progress = Math.round(m.progress * 100);
+progressFill.style.width = progress + '%';
+ocrStatus.textContent = `Reconociendo texto: ${progress}%`;
+} else {
+ocrStatus.textContent = m.status;
+}
+}
+}
+);
+
+const text = result.data.text;
+console.log('Texto OCR:', text);
+
+// Mostrar texto completo
+ocrResult.textContent = text;
+ocrResult.style.display = 'block';
+
+// ============================================
+// 🔍 BUSCAR PATRÓN "E" + 4 DÍGITOS
+// ============================================
+
+// Primero buscar "E" + 4 dígitos
+const patternMatch4 = text.match(/E\s*(\d{4})/i);
+
+// Si no encuentra, buscar "E" + 5 dígitos (fallback)
+const patternMatch5 = text.match(/E\s*(\d{5})/i);
+
+if (patternMatch4 && patternMatch4[1]) {
+const codigo = patternMatch4[1];
+const codigoCompleto = 'E' + codigo;
+document.getElementById('ticket').value = codigoCompleto;
+document.getElementById('pedidoNumero').value = codigoCompleto;
+showStatus(`✅ Código identificado: ${codigoCompleto}`, 'success');
+} else if (patternMatch5 && patternMatch5[1]) {
+const codigo = patternMatch5[1];
+const codigoCompleto = 'E' + codigo;
+document.getElementById('ticket').value = codigoCompleto;
+document.getElementById('pedidoNumero').value = codigoCompleto;
+showStatus(`✅ Código identificado: ${codigoCompleto} (5 dígitos)`, 'success');
+} else {
+showStatus('⚠️ No se encontró el patrón "E" + 4 dígitos. Ingresa el código manualmente.', 'error');
+document.getElementById('ticket').readOnly = false;
+document.getElementById('ticket').focus();
+}
+
+} catch (error) {
+console.error('Error OCR:', error);
+showStatus('❌ Error en OCR: ' + error.message, 'error');
+document.getElementById('ticket').readOnly = false;
+} finally {
+ocrProgress.style.display = 'none';
+}
+});
+
+// Submit del formulario
+document.getElementById('trackingForm').addEventListener('submit', async (e) => {
+e.preventDefault();
+
+const formData = {
+determinante: document.getElementById('determinante').value,
+ticket: document.getElementById('ticket').value,
+timestamp: document.getElementById('timestampInput').value,
+pedidoNumero: document.getElementById('pedidoNumero').value,
+fotoBase64: document.getElementById('fotoBase64').value
+};
+
+if (!formData.determinante || !formData.ticket) {
+showStatus('❌ Completa los campos obligatorios', 'error');
+return;
+}
+
+if (formData.determinante.length !== 4) {
+showStatus('❌ El determinante debe tener 4 dígitos', 'error');
+return;
+}
+
+if (SCRIPT_URL === 'TU_URL_DE_GOOGLE_APPS_SCRIPT') {
+showStatus('❌ No se ha configurado la URL de Google Apps Script', 'error');
+return;
+}
+
+const btn = document.getElementById('btnSubmit');
+const originalText = btn.textContent;
+btn.textContent = '⏳ Guardando...';
+btn.disabled = true;
+
+try {
+await fetch(SCRIPT_URL, {
+method: 'POST',
+mode: 'no-cors',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(formData)
+});
+
+showStatus('✅ Registro guardado exitosamente', 'success');
+
+// Limpiar formulario (mantener determinante para entrada rápida)
+const detValue = document.getElementById('determinante').value;
+document.getElementById('trackingForm').reset();
+document.getElementById('determinante').value = detValue;
+document.getElementById('ticket').readOnly = true;
+document.getElementById('fotoBase64').value = '';
+document.getElementById('pedidoNumero').value = '';
+document.getElementById('cameraPreview').style.display = 'none';
+document.getElementById('btnStartCamera').style.display = 'block';
+document.getElementById('btnStartCamera').textContent = '📷 Activar Cámara';
+document.getElementById('btnStartCamera').disabled = false;
+document.getElementById('btnStartCamera').style.background = '#4CAF50';
+
+updateTimestamp();
+
+setTimeout(() => {
+btn.textContent = originalText;
+btn.disabled = false;
+}, 2000);
+
+} catch (error) {
+showStatus('❌ Error al guardar: ' + error.message, 'error');
+btn.textContent = originalText;
+btn.disabled = false;
+}
+});
+
+// Limpieza
+window.addEventListener('beforeunload', () => {
+if (videoStream) {
+videoStream.getTracks().forEach(track => track.stop());
+}
+clearInterval(timestampInterval);
+});
+</script>
 </body>
 </html>
