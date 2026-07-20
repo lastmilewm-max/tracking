@@ -415,28 +415,27 @@
                 ocrResult.textContent = text;
                 ocrResult.style.display = 'block';
                 
-                // Buscar número después de "E"
-                const pedidoMatch = text.match(/E\s*(\d+)/i);
-                
-                if (pedidoMatch && pedidoMatch[1]) {
-                    const numeroPedido = pedidoMatch[1];
-                    document.getElementById('ticket').value = numeroPedido;
-                    document.getElementById('pedidoNumero').value = numeroPedido;
-                    showStatus(`✅ Número de pedido extraído: ${numeroPedido}`, 'success');
+                // Buscar el patrón "E" + 4 dígitos
+                const patternMatch = text.match(/E(\d{4})/i);
+                if (patternMatch && patternMatch[1]) {
+                    const codigo = patternMatch[1];
+                    document.getElementById('ticket').value = 'E' + codigo;
+                    document.getElementById('pedidoNumero').value = 'E' + codigo;
+                    showStatus(✅ Código identificado: E${codigo}, 'success');
                 } else {
-                    showStatus('⚠️ No se encontró "E" en la imagen. Ingresa el número manualmente.', 'error');
+                // Si no encuentra el patrón, intenta buscar "E" + 5 dígitos (por si acaso)
+                const patternMatch5 = text.match(/E(\d{5})/i);
+                if (patternMatch5 && patternMatch5[1]) {
+                    const codigo = patternMatch5[1];
+                    document.getElementById('ticket').value = 'E' + codigo;
+                    document.getElementById('pedidoNumero').value = 'E' + codigo;
+                    showStatus(✅ Código identificado: E${codigo} (5 dígitos), 'success');
+                } else {
+                    showStatus('⚠️ No se encontró el patrón "E" + 4/5 dígitos. Ingresa el número manualmente.', 'error');
                     document.getElementById('ticket').readOnly = false;
                     document.getElementById('ticket').focus();
                 }
-                
-            } catch (error) {
-                console.error('Error OCR:', error);
-                showStatus('❌ Error en OCR: ' + error.message, 'error');
-                document.getElementById('ticket').readOnly = false;
-            } finally {
-                ocrProgress.style.display = 'none';
-            }
-        });
+            };
 
         // Submit del formulario
         document.getElementById('trackingForm').addEventListener('submit', async (e) => {
