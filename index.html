@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rastreo OCR - Punto A</title>
-    <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
+    <title>Rastreo - Código de Barras</title>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
@@ -23,14 +23,14 @@
         }
         h1 { 
             color: #333; 
-            margin-bottom: 10px; 
+            margin-bottom: 5px; 
             text-align: center;
             font-size: 1.3em;
         }
         .subtitle {
             text-align: center;
             color: #666;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             font-size: 0.85em;
         }
         .form-group {
@@ -61,18 +61,24 @@
             border-radius: 8px;
             margin-bottom: 15px;
         }
+        #reader {
+            width: 100%;
+            min-height: 250px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            display: none;
+        }
+        #reader video {
+            width: 100% !important;
+            height: auto !important;
+        }
         #cameraPreview {
             width: 100%;
             max-height: 300px;
             border-radius: 8px;
             display: none;
-            margin-bottom: 10px;
-        }
-        #cameraVideo {
-            width: 100%;
-            max-height: 300px;
-            border-radius: 8px;
-            display: none;
+            margin-top: 10px;
         }
         .btn {
             width: 100%;
@@ -93,8 +99,8 @@
         .btn-camera {
             background: #4CAF50;
         }
-        .btn-capture {
-            background: #FF9800;
+        .btn-stop {
+            background: #f44336;
             display: none;
         }
         .timestamp {
@@ -125,38 +131,15 @@
             background: #e3f2fd;
             color: #1565c0;
         }
-        .ocr-progress {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 10px 0;
-            display: none;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            background: #ddd;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            width: 0%;
-            transition: width 0.3s;
-        }
-        .ocr-result {
-            background: #f0f0f0;
+        .scan-hint {
+            background: #e8f5e9;
             padding: 10px;
             border-radius: 6px;
-            margin-top: 10px;
-            font-family: monospace;
-            font-size: 12px;
-            max-height: 150px;
-            overflow-y: auto;
+            margin: 10px 0;
+            font-size: 13px;
+            color: #2e7d32;
             display: none;
-            white-space: pre-wrap;
+            text-align: center;
         }
         .info-box {
             background: #e3f2fd;
@@ -177,8 +160,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>📦 Rastreo OCR - Punto A</h1>
-        <p class="subtitle">Lectura automática de etiquetas con OCR</p>
+        <h1>📦 Rastreo - Punto A</h1>
+        <p class="subtitle">Lector de Código de Barras</p>
         
         <div id="statusMsg" class="status-msg"></div>
         
@@ -196,15 +179,14 @@
                        inputmode="numeric">
             </div>
 
-            <!-- Campo 2: Ticket (extraído por OCR - E + 4 dígitos) -->
+            <!-- Campo 2: Código de Barras -->
             <div class="form-group">
-                <label for="ticket">Código (E + 4 dígitos)*</label>
+                <label for="ticket">Código de Barras*</label>
                 <input type="text" 
                        id="ticket" 
                        name="ticket" 
                        required 
-                       placeholder="Se extraerá automáticamente (Ej: E1234)"
-                       readonly>
+                       placeholder="Se leerá automáticamente">
             </div>
 
             <!-- Campo 3: Timestamp -->
@@ -216,33 +198,23 @@
                 <input type="hidden" id="timestampInput" name="timestamp">
             </div>
 
-            <!-- Campo 4: Cámara y OCR -->
+            <!-- Campo 4: Cámara y Scanner -->
             <div class="camera-section">
-                <label>📷 Capturar Etiqueta*</label>
+                <label>📷 Escanear Código de Barras*</label>
                 
-                <video id="cameraVideo" autoplay playsinline></video>
-                <canvas id="canvas" style="display:none;"></canvas>
+                <div id="reader"></div>
+                <div id="scanHint" class="scan-hint">
+                    📱 Apunta al código de barras. Se leerá automáticamente.
+                </div>
                 <img id="cameraPreview" alt="Vista previa">
                 
                 <button type="button" id="btnStartCamera" class="btn btn-camera">
-                    📷 Activar Cámara
+                    📷 Iniciar Scanner
                 </button>
                 
-                <button type="button" id="btnCapture" class="btn btn-capture">
-                    📸 Capturar y Procesar con OCR
+                <button type="button" id="btnStop" class="btn btn-stop">
+                    ⏹️ Detener Scanner
                 </button>
-                
-                <div class="ocr-progress" id="ocrProgress">
-                    <div>Procesando imagen con OCR...</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                    <div id="ocrStatus" style="margin-top: 10px; font-size: 12px; color: #666;">
-                        Inicializando...
-                    </div>
-                </div>
-                
-                <div class="ocr-result" id="ocrResult"></div>
                 
                 <input type="hidden" id="fotoBase64" name="fotoBase64">
                 <input type="hidden" id="pedidoNumero" name="pedidoNumero">
@@ -256,11 +228,11 @@
         <div class="info-box">
             <strong>💡 Instrucciones:</strong>
             <ul>
-                <li>Presiona "Activar Cámara"</li>
-                <li>Apunta a la etiqueta completa</li>
-                <li>Presiona "Capturar y Procesar con OCR"</li>
-                <li>El sistema buscará automáticamente el patrón "E" + 4 dígitos</li>
-                <li>Verifica que el código sea correcto antes de guardar</li>
+                <li>Presiona "Iniciar Scanner"</li>
+                <li>Apunta al código de barras de la etiqueta</li>
+                <li>El código se leerá automáticamente en 1-2 segundos</li>
+                <li>Se capturará una foto de respaldo</li>
+                <li>Verifica el código y presiona "Guardar Registro"</li>
             </ul>
         </div>
     </div>
@@ -269,12 +241,12 @@
         // ============================================
         // ⚠️ REEMPLAZA ESTA URL CON LA TUYA
         // ============================================
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyh6WUwcz_iPsuG1cN5W1GUJYnddnRcycC_JjT9WcMIHFgjMlSjhYGwtbEaDAbCuc8/exec';
+        const SCRIPT_URL = 'TU_URL_DE_GOOGLE_APPS_SCRIPT';
         // ============================================
         
-        let videoStream;
+        let html5QrCode;
         let timestampInterval;
-        let capturedImageBase64 = '';
+        let isScannerActive = false;
 
         // Mostrar mensajes
         function showStatus(message, type = 'info') {
@@ -309,174 +281,157 @@
         timestampInterval = setInterval(updateTimestamp, 1000);
         updateTimestamp();
 
-        // Activar cámara
+        // Iniciar scanner de código de barras
         document.getElementById('btnStartCamera').addEventListener('click', async () => {
             const btn = document.getElementById('btnStartCamera');
-            const video = document.getElementById('cameraVideo');
-            const preview = document.getElementById('cameraPreview');
-            const btnCapture = document.getElementById('btnCapture');
             
             try {
-                videoStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    } 
-                });
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("reader");
+                }
                 
-                video.srcObject = videoStream;
-                video.style.display = 'block';
-                preview.style.display = 'none';
+                const config = { 
+                    fps: 10, 
+                    qrbox: { width: 280, height: 150 },
+                    aspectRatio: 1.5,
+                    formatsToSupport: [
+                        Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.CODE_39,
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
+                        Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.UPC_E,
+                        Html5QrcodeSupportedFormats.QR_CODE,
+                        Html5QrcodeSupportedFormats.CODE_93,
+                        Html5QrcodeSupportedFormats.ITF
+                    ]
+                };
+
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    onBarcodeSuccess,
+                    onBarcodeFailure
+                );
                 
-                btn.textContent = '✅ Cámara Activa';
-                btn.disabled = true;
-                btn.style.background = '#4CAF50';
+                isScannerActive = true;
+                document.getElementById('reader').style.display = 'block';
+                document.getElementById('scanHint').style.display = 'block';
+                btn.style.display = 'none';
+                document.getElementById('btnStop').style.display = 'block';
                 
-                btnCapture.style.display = 'block';
-                
-                showStatus('Cámara activa. Apunta a la etiqueta y presiona "Capturar"', 'success');
+                showStatus('📊 Scanner activo. Apunta al código de barras.', 'success');
                 
             } catch (err) {
                 console.error('Error:', err);
-                
-                if (err.name === 'NotAllowedError') {
-                    showStatus('❌ Permiso de cámara denegado', 'error');
-                } else if (err.name === 'NotFoundError') {
-                    showStatus(' No se encontró cámara', 'error');
-                } else {
-                    showStatus('❌ Error: ' + err.message, 'error');
-                }
+                handleCameraError(err);
             }
         });
 
-        // Capturar foto del video con compresión
-        function capturePhoto() {
-            const video = document.getElementById('cameraVideo');
-            const canvas = document.getElementById('canvas');
-            
-            if (!video || !video.videoWidth) {
-                showStatus('❌ No hay video disponible para capturar', 'error');
-                return false;
+        // Detener scanner
+        document.getElementById('btnStop').addEventListener('click', () => {
+            if (isScannerActive && html5QrCode) {
+                try {
+                    html5QrCode.stop();
+                } catch (e) {
+                    console.log('Error al detener:', e);
+                }
+                isScannerActive = false;
             }
             
-            // Redimensionar para reducir tamaño (máximo 800px de ancho)
-            const maxWidth = 800;
-            const scale = Math.min(1, maxWidth / video.videoWidth);
+            document.getElementById('reader').style.display = 'none';
+            document.getElementById('scanHint').style.display = 'none';
+            document.getElementById('btnStop').style.display = 'none';
             
-            canvas.width = video.videoWidth * scale;
-            canvas.height = video.videoHeight * scale;
+            const btnStart = document.getElementById('btnStartCamera');
+            btnStart.style.display = 'block';
+            btnStart.textContent = '📷 Iniciar Scanner';
+            btnStart.disabled = false;
             
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // Convertir a base64 con compresión (calidad 0.7)
-            capturedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
-            document.getElementById('fotoBase64').value = capturedImageBase64;
-            
-            // Mostrar preview
-            const preview = document.getElementById('cameraPreview');
-            preview.src = capturedImageBase64;
-            preview.style.display = 'block';
-            video.style.display = 'none';
-            
-            const sizeKB = Math.round(capturedImageBase64.length / 1024);
-            showStatus(`📸 Imagen capturada (${sizeKB} KB)`, 'info');
-            
-            return true;
+            showStatus('Scanner detenido', 'info');
+        });
+
+        // Manejar errores de cámara
+        function handleCameraError(err) {
+            if (err.name === 'NotAllowedError') {
+                showStatus('❌ Permiso de cámara denegado', 'error');
+            } else if (err.name === 'NotFoundError') {
+                showStatus('❌ No se encontró cámara', 'error');
+            } else if (err.name === 'NotReadableError') {
+                showStatus('❌ La cámara está en uso', 'error');
+            } else {
+                showStatus('❌ Error: ' + err.message, 'error');
+            }
         }
 
-        // Capturar foto y procesar con OCR
-        document.getElementById('btnCapture').addEventListener('click', async () => {
-            const video = document.getElementById('cameraVideo');
-            const btnCapture = document.getElementById('btnCapture');
-            const ocrProgress = document.getElementById('ocrProgress');
-            const progressFill = document.getElementById('progressFill');
-            const ocrStatus = document.getElementById('ocrStatus');
-            const ocrResult = document.getElementById('ocrResult');
+        // Callback cuando se escanea código de barras
+        function onBarcodeSuccess(decodedText, decodedResult) {
+            console.log('Código detectado:', decodedText);
             
-            if (!videoStream) {
-                showStatus('❌ Primero activa la cámara', 'error');
-                return;
+            document.getElementById('ticket').value = decodedText;
+            document.getElementById('pedidoNumero').value = decodedText;
+            
+            // Capturar foto del frame actual
+            capturePhotoFromScanner();
+            
+            // Detener scanner
+            stopScanner();
+            
+            // Vibrar
+            if (navigator.vibrate) {
+                navigator.vibrate(200);
             }
             
-            // Capturar foto (con compresión)
-            const captured = capturePhoto();
-            if (!captured) return;
-            
-            // Detener cámara
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-                videoStream = null;
-            }
-            
-            btnCapture.style.display = 'none';
-            document.getElementById('btnStartCamera').style.display = 'none';
-            
-            // Procesar con OCR
-            ocrProgress.style.display = 'block';
-            ocrResult.style.display = 'none';
-            
-            try {
-                const result = await Tesseract.recognize(
-                    capturedImageBase64,
-                    'spa+eng',
-                    {
-                        logger: m => {
-                            if (m.status === 'recognizing text') {
-                                const progress = Math.round(m.progress * 100);
-                                progressFill.style.width = progress + '%';
-                                ocrStatus.textContent = `Reconociendo texto: ${progress}%`;
-                            } else {
-                                ocrStatus.textContent = m.status;
-                            }
-                        }
-                    }
-                );
-                
-                const text = result.data.text;
-                console.log('Texto OCR:', text);
-                
-                // Mostrar texto completo
-                ocrResult.textContent = text;
-                ocrResult.style.display = 'block';
-                
-                // ============================================
-                // 🔍 BUSCAR PATRÓN "E" + 4 DÍGITOS
-                // ============================================
-                
-                // Primero buscar "E" + 4 dígitos
-                const patternMatch4 = text.match(/E\s*(\d{4})/i);
-                
-                // Si no encuentra, buscar "E" + 5 dígitos (fallback)
-                const patternMatch5 = text.match(/E\s*(\d{5})/i);
-                
-                if (patternMatch4 && patternMatch4[1]) {
-                    const codigo = patternMatch4[1];
-                    const codigoCompleto = 'E' + codigo;
-                    document.getElementById('ticket').value = codigoCompleto;
-                    document.getElementById('pedidoNumero').value = codigoCompleto;
-                    showStatus(`✅ Código identificado: ${codigoCompleto}`, 'success');
-                } else if (patternMatch5 && patternMatch5[1]) {
-                    const codigo = patternMatch5[1];
-                    const codigoCompleto = 'E' + codigo;
-                    document.getElementById('ticket').value = codigoCompleto;
-                    document.getElementById('pedidoNumero').value = codigoCompleto;
-                    showStatus(`✅ Código identificado: ${codigoCompleto} (5 dígitos)`, 'success');
-                } else {
-                    showStatus('⚠️ No se encontró el patrón "E" + 4 dígitos. Ingresa el código manualmente.', 'error');
-                    document.getElementById('ticket').readOnly = false;
-                    document.getElementById('ticket').focus();
+            showStatus(`✅ Código leído: ${decodedText}`, 'success');
+        }
+
+        function onBarcodeFailure(error) {
+            // Ignorar errores de scan continuo
+        }
+
+        // Detener scanner
+        function stopScanner() {
+            if (isScannerActive && html5QrCode) {
+                try {
+                    html5QrCode.stop();
+                } catch (e) {
+                    console.log('Error al detener:', e);
                 }
-                
-            } catch (error) {
-                console.error('Error OCR:', error);
-                showStatus('❌ Error en OCR: ' + error.message, 'error');
-                document.getElementById('ticket').readOnly = false;
-            } finally {
-                ocrProgress.style.display = 'none';
+                isScannerActive = false;
             }
-        });
+            
+            document.getElementById('reader').style.display = 'none';
+            document.getElementById('scanHint').style.display = 'none';
+            document.getElementById('btnStop').style.display = 'none';
+            
+            const btnStart = document.getElementById('btnStartCamera');
+            btnStart.style.display = 'block';
+            btnStart.textContent = '📷 Iniciar Scanner';
+            btnStart.disabled = false;
+        }
+
+        // Capturar foto del scanner
+        function capturePhotoFromScanner() {
+            const video = document.querySelector('#reader video');
+            if (video && video.videoWidth) {
+                const canvas = document.createElement('canvas');
+                const maxWidth = 800;
+                const scale = Math.min(1, maxWidth / video.videoWidth);
+                
+                canvas.width = video.videoWidth * scale;
+                canvas.height = video.videoHeight * scale;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const base64Image = canvas.toDataURL('image/jpeg', 0.7);
+                document.getElementById('fotoBase64').value = base64Image;
+                
+                const preview = document.getElementById('cameraPreview');
+                preview.src = base64Image;
+                preview.style.display = 'block';
+            }
+        }
 
         // Submit del formulario
         document.getElementById('trackingForm').addEventListener('submit', async (e) => {
@@ -524,14 +479,9 @@
                 const detValue = document.getElementById('determinante').value;
                 document.getElementById('trackingForm').reset();
                 document.getElementById('determinante').value = detValue;
-                document.getElementById('ticket').readOnly = true;
                 document.getElementById('fotoBase64').value = '';
                 document.getElementById('pedidoNumero').value = '';
                 document.getElementById('cameraPreview').style.display = 'none';
-                document.getElementById('btnStartCamera').style.display = 'block';
-                document.getElementById('btnStartCamera').textContent = '📷 Activar Cámara';
-                document.getElementById('btnStartCamera').disabled = false;
-                document.getElementById('btnStartCamera').style.background = '#4CAF50';
                 
                 updateTimestamp();
                 
@@ -549,8 +499,8 @@
 
         // Limpieza
         window.addEventListener('beforeunload', () => {
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
+            if (isScannerActive && html5QrCode) {
+                try { html5QrCode.stop(); } catch(e) {}
             }
             clearInterval(timestampInterval);
         });
